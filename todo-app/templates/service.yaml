@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "todo-app.fullname" . }}
+  namespace: testprod
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "todo-app.name" . }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: 3000
