@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         IMAGE = "604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp:latest"
-        CHART_PATH = "helm/todoapp"
+        CHART_PATH = "todo-app/"
     }
 
     stages {
