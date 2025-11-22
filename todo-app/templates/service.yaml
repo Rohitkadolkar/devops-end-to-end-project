@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: {{ include "todo-app.fullname" . }}
   namespace: testprod
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-type: "HTTP"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/"
 spec:
   type: {{ .Values.service.type }}
   selector:
