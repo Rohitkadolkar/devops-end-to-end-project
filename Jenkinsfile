@@ -30,7 +30,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t todoapp .
+                docker build -t todoapp ./app
                 docker tag todoapp:latest ${IMAGE}
                 '''
             }
