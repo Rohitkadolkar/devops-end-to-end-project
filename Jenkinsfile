@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_CREDENTIALS = credentials('Rohit')
+        AWS_CREDENTIALS = credentials('Jenkins-eks-access')
         AWS_REGION = "ap-south-1"
         IMAGE = "604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp:latest"
         CHART_PATH = "helm/todoapp"
