@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        IMAGE = "604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp:latest"
+        ECR_REPO = "604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp"
         CHART_PATH = "todo-app/"
     }
 
@@ -11,8 +11,17 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Rohitkadolkar/devops-end-to-end-project.git'
+                checkout scm
+            }
+        }
+
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE = "${ECR_REPO}:${IMAGE_TAG}"
+                    echo "Using Image Tag: ${IMAGE_TAG}"
+                }
             }
         }
 
@@ -20,9 +29,8 @@ pipeline {
             steps {
                 sh '''
                 aws configure set default.region ${AWS_REGION}
-                
                 aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin 604245833114.dkr.ecr.ap-south-1.amazonaws.com
+                    | docker login --username AWS --password-stdin ${ECR_REPO}
                 '''
             }
         }
@@ -30,8 +38,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t todoapp ./app
-                docker tag todoapp:latest ${IMAGE}
+                docker build -t ${IMAGE} ./app
                 '''
             }
         }
@@ -51,11 +58,10 @@ pipeline {
 
                 helm upgrade --install todoapp ${CHART_PATH} \
                     --namespace testprod \
-		    --set image.repository=604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp \
-                    --set image.tag=latest
+                    --set image.repository=${ECR_REPO} \
+                    --set image.tag=${IMAGE_TAG}
                 '''
             }
         }
-
     }
 }
