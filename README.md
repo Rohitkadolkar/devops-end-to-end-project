@@ -12,6 +12,13 @@ URL: http://a558925b91fbe4472aca3d8b9544c9db-1811821463.ap-south-1.elb.amazonaws
 
 URL: http://a4611bf18afe04bd3adc43ce3d87f92a-306919747.ap-south-1.elb.amazonaws.com/d/PTSqcpJWk/nodejs-application-dashboard?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all
 
+
+## Architecture Diagram
+
+<img width="1111" height="734" alt="Devops-end-to-end drawio (1)" src="https://github.com/user-attachments/assets/4f3e512c-9952-403a-a0f7-e471d63a8bd5" />
+
+
+
 ## 📁 Project Structure
 ```
 devops-end-to-end-project/
@@ -61,27 +68,29 @@ devops-end-to-end-project/
 ```
 
 ## Application Overview
-Simple Node.js Todo app (in-memory store)
-AngularJS frontend
-Exposes:
-/api/todos CRUD
-/health (liveness/readiness)
-/metrics (Prometheus metrics)
+```
 
+•Simple Node.js Todo app (in-memory store) 
+•AngularJS frontend 
+•Exposes: 
+	/api/todos CRUD 
+	/health (liveness/readiness) 
+	/metrics (Prometheus metrics) 
+```
 ## Docker & Containerization
-
+```
 Dockerfile (Multi-stage)
 •Stage 1: Builder (installs dependencies)
 •Stage 2: Production image (non-root user, small size)
 •Exposes port 3000
-	
 This ensures:
 ✔ Small image
 ✔ Faster deployments
 ✔ Production-grade setup
+```
 
 ## CI/CD Pipeline (Jenkins)
-
+```
 Auto deployment configured using github webhook
 Pipeline Stages
 	1.	Checkout Code from GitHub
@@ -99,34 +108,35 @@ Why commit SHA tags?
 	•	Ensures each deployment is unique
 	•	Allows easy rollback
 	•	Avoids caching issues with latest
-	
+```	
 ## Kubernetes Deployment (via Helm Chart)
-
+```
 Includes  -
+```
 
-
-###ConfigMap
-
+### ConfigMap
+```
 Contains:
 •APP_ENV
 •APP_NAME
-
-###Secret
-
+```
+### Secret
+```
 Contains:
 •SECRET_KEY
-
-###ServiceMonitor
-
+```
+### ServiceMonitor
+```
 Automatically scrapes /metrics and integrates into Prometheus.
-
+```
 ### Pod networking
+```
 Pods communicate inside cluster via ClusterIP service
 Pod to pod traffic flows inside VPC internally
+```
 
-
-##Terraform Infrastructure
-
+## Terraform Infrastructure
+```
 All infra is created using Terraform:
 
 Resources Created
@@ -136,9 +146,9 @@ Resources Created
 •EKS Node Group
 •S3 Bucket (remote backend)
 •DynamoDB Table (Terraform state locking)
-
-###Remote Backend Configuration
-
+```
+### Remote Backend Configuration
+```
 Located in backend.tf:
 •Stores Terraform state in S3
 •Uses DynamoDB for state locking
@@ -147,10 +157,11 @@ Benefits:
 ✔ No local state
 ✔ Team-safe
 ✔ Prevents parallel runs and corruption
+```
+## Monitoring (Prometheus + Grafana)
 
-##Monitoring (Prometheus + Grafana)
-
-###Installed Using Helm:
+### Installed Using Helm:
+```
 •kube-prometheus-stack
 
 What is monitored?
@@ -161,43 +172,46 @@ What is monitored?
  •Status codes
  •Routes
  •Methods
-
-###Grafana Dashboard
+```
+### Grafana Dashboard
+```
 •Application Requests panel
 •Pod resource usage
 •Node resource usage
 
 Screenshots included in /documentation/monitoring-dashboard.png.
+```
 
-##Architecture Diagram
-
-
-
-##Few Troubleshooting & Issues faced
+## Few Troubleshooting & Issues faced
+```
  •Webhook was not able to pick from app folder as it was uploaded as a sub repo inside the github repo
  •Fix - Deleted the .git folder inside the app folder
+
  •Was locked out of EKS cluster(couldnt authconfig) as hadnt given admin access to IAM principal when creating the cluster. Wasnt a part of RBAC. No RBAC mapping for the identity I was using.
  •Fix - Destroyed the cluster and created it again with an eks-access.tf with aws_eks_access_entry and then applied it again. 
+
  •Jenkins Pipeline failures
  •Missing npm
  •Fix - Installed npm on Jenkins server locally
+
  •Prometheus ServiceMonitor not picking up application metrics
  •Fix - labeled service correctly + added release=prom and it started picking
+
  •Latest tag issue- Even when new build was pushed, it wasnt picking up due to IfNotPresent policy. Changed it to always but when the app crashed it ws still getting stuck and new build wasnt getting pushed because maximum pods was 3, minimum pods were 2. 2 were healthy and one was in crashloopbackoff. So new container wasnt being made. 
  •Fix - Removed latest tagging and added image tagging with commit SHA id. Then it started pulling images correctly and accurately
-
-##How to run locally 
-
+```
+## How to run locally 
+```
 docker build -t todoapp .
 docker run -p 3000:3000 todoapp
-
+```
 ## How to deploy using Jenkins
-
+```
 Trigger a push to Github -> Jenkins
 automatically builds, tests, pushes, deploys.
-
-##Conclusion
-
+```
+## Conclusion
+```
 This project covers:
 ✔ CI/CD
 ✔ Docker
@@ -210,4 +224,5 @@ This project covers:
 ✔ Secrets/ConfigMaps
 ✔ Rolling Updates
 ✔ Remote Backend (S3 + DynamoDB)
+```
 
