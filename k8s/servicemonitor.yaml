@@ -1,6 +1,8 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
+  labels:
+    release: prom
   name: todoapp-servicemonitor
   namespace: monitoring
 spec:
@@ -11,6 +13,6 @@ spec:
     matchNames:
       - testprod
   endpoints:
-    - port: http
+    - port: metrics
       path: /metrics
       interval: 15s
