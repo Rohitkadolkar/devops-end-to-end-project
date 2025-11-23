@@ -6,3 +6,4 @@ metadata:
 data:
   APP_ENV: {{ .Values.env.APP_ENV | quote }}
   APP_NAME: {{ .Values.env.APP_NAME | quote }}
+
