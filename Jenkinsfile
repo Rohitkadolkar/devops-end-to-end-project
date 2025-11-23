@@ -32,20 +32,15 @@ pipeline {
         }
 
 
-        stage('Run Tests') {
+        stage('Install Dependencies & Run Tests') {
             steps {
-                dir('app') {
-                    sh '''
-                        echo "Installing test dependencies..."
-                        npm install
-
-                        echo "Running tests..."
-                        npm test || exit 1
-                    '''
-                }
+                sh '''
+                cd app
+                npm install
+                npm test
+                '''
             }
         }
-
 
         stage('Login to ECR') {
             steps {
