@@ -7,7 +7,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// ---------------- Prometheus Metrics ----------------
+// Prometheus Metrics
 client.collectDefaultMetrics();
 
 const requestCounter = new client.Counter({
@@ -16,13 +16,11 @@ const requestCounter = new client.Counter({
   labelNames: ['method','route','code']
 });
 
-// ---------------- In-Memory Store ----------------
+// In-memory DB
 let todos = [];
 let id = 1;
 
-// ---------------- Routes ----------------
-
-// Health check
+// Health
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // Metrics
@@ -31,34 +29,55 @@ app.get('/metrics', async (req, res) => {
   res.end(await client.register.metrics());
 });
 
-// Serve frontend
+// Static Angular UI
 app.use(express.static(path.join(__dirname, 'public')));
 
-// GET all todos (Angular requires { text: "" })
+// -------------------- API FIXED FOR ANGULAR --------------------
+
+// Return format Angular expects
+function convertToAngular(todo) {
+  return {
+    _id: todo.id,         // Angular expects _id
+    text: todo.title,     // Angular expects text
+    completed: todo.completed
+  };
+}
+
+// GET all todos
 app.get('/api/todos', (req, res) => {
   requestCounter.inc({method:'GET',route:'/api/todos',code:200});
-  res.json(todos);  
+  res.json(todos.map(convertToAngular));
 });
 
-// CREATE todo (Angular expects .text not .title)
+// CREATE todo
 app.post('/api/todos', (req, res) => {
+
   const todo = {
-    _id: id++,             // Angular expects _id, not id
-    text: req.body.text,   // Angular expects text
-    done: false
+    id: id++,
+    title: req.body.text || "Untitled Task",   // Angular sends "text"
+    completed: false
   };
+
   todos.push(todo);
+
   requestCounter.inc({method:'POST',route:'/api/todos',code:201});
-  res.status(201).json(todos);   // Angular expects full updated list
+  res.status(201).json(todos.map(convertToAngular));
 });
 
 // DELETE todo
 app.delete('/api/todos/:id', (req, res) => {
   const todoId = Number(req.params.id);
-  todos = todos.filter(t => t._id !== todoId);
+  const index = todos.findIndex(t => t.id === todoId);
+
+  if (index === -1) {
+    return res.status(404).json({ error: "Not found" });
+  }
+
+  todos.splice(index, 1);
+
   requestCounter.inc({method:'DELETE',route:'/api/todos/:id',code:200});
-  res.json(todos);
+  res.json(todos.map(convertToAngular));
 });
 
-// ---------------- Start Server ----------------
+// Start server
 app.listen(PORT, () => console.log(Todo app running on port ${PORT}));
