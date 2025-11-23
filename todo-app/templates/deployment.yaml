@@ -32,12 +32,6 @@ spec:
             - secretRef:
               name: {{ include "todo-app.fullname" . }}
 
-            - name: SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "todo-app.fullname" . }}
-                  key: SECRET_KEY
-
           readinessProbe:
             httpGet:
               path: /health
