@@ -1,6 +1,6 @@
 image:
   repository: 604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 replicaCount: 2
