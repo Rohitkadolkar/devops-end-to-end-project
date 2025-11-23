@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        ECR_REPO = "604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp"
+        ECR_URL = "604245833114.dkr.ecr.ap-south-1.amazonaws.com"
+        REPO_NAME = "todoapp"
         CHART_PATH = "todo-app/"
         K8S_NAMESPACE = "testprod"
     }
@@ -20,14 +21,8 @@ pipeline {
         stage('Set Image Tag') {
             steps {
                 script {
-                    // Get short commit hash
-                    IMAGE_TAG = sh(
-                        script: "git rev-parse --short HEAD",
-                        returnStdout: true
-                    ).trim()
-
-                    IMAGE = "${ECR_REPO}:${IMAGE_TAG}"
-
+                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE = "${ECR_URL}/${REPO_NAME}:${IMAGE_TAG}"
                     echo "Using Image Tag: ${IMAGE_TAG}"
                 }
             }
@@ -37,9 +32,9 @@ pipeline {
             steps {
                 sh '''
                 aws configure set default.region ${AWS_REGION}
-                
+
                 aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin ${ECR_REPO}
+                    | docker login --username AWS --password-stdin ${ECR_URL}
                 '''
             }
         }
@@ -47,7 +42,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t todoapp ./app
+                docker build -t todoapp:latest ./app
                 docker tag todoapp:latest ${IMAGE}
                 '''
             }
@@ -55,7 +50,9 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                sh "docker push ${IMAGE}"
+                sh '''
+                docker push ${IMAGE}
+                '''
             }
         }
 
@@ -66,7 +63,7 @@ pipeline {
 
                 helm upgrade --install todoapp ${CHART_PATH} \
                     --namespace ${K8S_NAMESPACE} \
-                    --set image.repository=${ECR_REPO} \
+                    --set image.repository=${ECR_URL}/${REPO_NAME} \
                     --set image.tag=${IMAGE_TAG}
                 '''
             }
