@@ -2,10 +2,11 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1"
+        AWS_REGION  = "ap-south-1"
         AWS_ACCOUNT = "604245833114"
-        REPO_NAME = "todoapp"
-        CHART_PATH = "todo-app/"
+        REPO_NAME   = "todoapp"
+        CHART_PATH  = "todo-app/"
+        NAMESPACE   = "testprod"
     }
 
     stages {
@@ -17,25 +18,32 @@ pipeline {
             }
         }
 
-
         stage('Set Image Tag') {
             steps {
                 script {
-                    def commit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    def commit = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
+
                     env.IMAGE_TAG = commit
                     env.IMAGE = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}"
 
-                    echo "Using Image Tag: ${IMAGE_TAG}"
-                    echo "Full Image Name: ${IMAGE}"
+                    echo "Using Image Tag: ${env.IMAGE_TAG}"
+                    echo "Full Image Name: ${env.IMAGE}"
                 }
             }
         }
+
         stage('Login to ECR') {
             steps {
                 sh '''
                 aws configure set default.region ${AWS_REGION}
+
                 aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    | docker login \
+                        --username AWS \
+                        --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
                 '''
             }
         }
@@ -63,7 +71,8 @@ pipeline {
                 aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
 
                 helm upgrade --install todoapp ${CHART_PATH} \
-                    --namespace testprod \
+                    --namespace ${NAMESPACE} \
+                    --create-namespace \
                     --set image.repository=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME} \
                     --set image.tag=${IMAGE_TAG} \
                     --set image.pullPolicy=Always
