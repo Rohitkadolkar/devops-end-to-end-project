@@ -17,16 +17,19 @@ pipeline {
             }
         }
 
+
         stage('Set Image Tag') {
             steps {
                 script {
-                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}"
+                    def commit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = commit
+                    env.IMAGE = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}"
+
                     echo "Using Image Tag: ${IMAGE_TAG}"
+                    echo "Full Image Name: ${IMAGE}"
                 }
             }
         }
-
         stage('Login to ECR') {
             steps {
                 sh '''
@@ -40,8 +43,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t todoapp:${IMAGE_TAG} ./app
-                docker tag todoapp:${IMAGE_TAG} ${IMAGE}
+                docker build -t todoapp:latest ./app
+                docker tag todoapp:latest ${IMAGE}
                 '''
             }
         }
