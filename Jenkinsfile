@@ -3,10 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        AWS_ACCOUNT_ID = "604245833114"
-        ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/todoapp"
+        AWS_ACCOUNT = "604245833114"
+        REPO_NAME = "todoapp"
         CHART_PATH = "todo-app/"
-        K8S_NAMESPACE = "testprod"
     }
 
     stages {
@@ -21,14 +20,8 @@ pipeline {
         stage('Set Image Tag') {
             steps {
                 script {
-                    // commit ID tag
-                    IMAGE_TAG = sh(
-                        script: "git rev-parse --short HEAD",
-                        returnStdout: true
-                    ).trim()
-
-                    IMAGE = "${ECR_REPO}:${IMAGE_TAG}"
-
+                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}"
                     echo "Using Image Tag: ${IMAGE_TAG}"
                 }
             }
@@ -37,10 +30,9 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 sh '''
-                    aws configure set default.region ${AWS_REGION}
-
-                    aws ecr get-login-password --region ${AWS_REGION} \
-                        | docker login --username AWS --password-stdin ${ECR_REPO}
+                aws configure set default.region ${AWS_REGION}
+                aws ecr get-login-password --region ${AWS_REGION} \
+                    | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
                 '''
             }
         }
@@ -48,8 +40,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    docker build -t todoapp:${IMAGE_TAG} ./app
-                    docker tag todoapp:${IMAGE_TAG} ${IMAGE}
+                docker build -t todoapp:${IMAGE_TAG} ./app
+                docker tag todoapp:${IMAGE_TAG} ${IMAGE}
                 '''
             }
         }
@@ -57,7 +49,7 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 sh '''
-                    docker push ${IMAGE}
+                docker push ${IMAGE}
                 '''
             }
         }
@@ -65,13 +57,13 @@ pipeline {
         stage('Deploy to EKS with Helm') {
             steps {
                 sh '''
-                    aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
+                aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
 
-                    helm upgrade --install todoapp ${CHART_PATH} \
-                        --namespace ${K8S_NAMESPACE} \
-                        --set image.repository=${ECR_REPO} \
-                        --set image.tag=${IMAGE_TAG} \
-                        --set image.pullPolicy=Always
+                helm upgrade --install todoapp ${CHART_PATH} \
+                    --namespace testprod \
+                    --set image.repository=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME} \
+                    --set image.tag=${IMAGE_TAG} \
+                    --set image.pullPolicy=Always
                 '''
             }
         }
