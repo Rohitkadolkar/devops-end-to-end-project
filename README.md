@@ -16,25 +16,26 @@ URL: http://a4611bf18afe04bd3adc43ce3d87f92a-306919747.ap-south-1.elb.amazonaws.
 
 devops-end-to-end-project/
 │
-├── app/                          
+├── app/
 │   ├── server.js
 │   ├── package.json
 │   ├── Dockerfile
 │   ├── public/
 │   └── test/
 │
-├── Jenkinsfile                    #CICD file
-├── todo-app/                      #Helm repo
+├── Jenkinsfile                    # CI/CD Pipeline
+│
+├── todo-app/                      # Helm chart
 │   ├── Chart.yaml
 │   ├── values.yaml
 │   └── templates/
-│       ├── deployment.yamll
+│       ├── deployment.yaml
 │       ├── service.yaml
 │       ├── configmap.yaml
 │       ├── secret.yaml
 │       └── hpa.yaml
-│       
-├── terraform-infra/               # Terraform Code for Infra setup
+│
+├── terraform-infra/               # Terraform Infra
 │   ├── backend.tf
 │   ├── providers.tf
 │   ├── variables.tf
@@ -42,25 +43,21 @@ devops-end-to-end-project/
 │   ├── vpc.tf
 │   ├── eks.tf
 │   ├── eks-access.tf
-│   ├── s3-dynamodb.tf             # S3 + DynamoDB backend
+│   ├── s3-dynamodb.tf
 │   ├── outputs.tf
 │   ├── versions.tf
-│   └── module.eks/                # EKS module
+│   └── module.eks/
 │
-├── k8s/                 # Documentation
+├── k8s/                           # k8s docs manifests
 │   ├── servicemonitor.yaml
 │   ├── namespace.yaml
 │   ├── ConfigMap.yaml
 │   └── secret.yaml
-│   
-├── documentation/                 # Documentation
+│
+├── documentation/
 │   ├── README.md
 │   ├── architecture.png
-│   └── Grafana Dashboard
-│
-└── screenshots/                   # Grafana Screenshots 
-    ├── dashboard.png
-    └── prometheus-targets.png
+└── └── Grafana Dashboard/
 
 
 ## Application Overview
