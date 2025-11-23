@@ -1,73 +1,77 @@
 pipeline {
-    agent any
+    agent any
 
-    environment {
-        AWS_REGION = "ap-south-1"
-        ECR_URL = "604245833114.dkr.ecr.ap-south-1.amazonaws.com"
-        REPO_NAME = "todoapp"
-        CHART_PATH = "todo-app/"
-        K8S_NAMESPACE = "testprod"
-    }
+    environment {
+        AWS_REGION = "ap-south-1"
+        ECR_URL = "604245833114.dkr.ecr.ap-south-1.amazonaws.com"
+        REPO_NAME = "todoapp"
+        CHART_PATH = "todo-app/"
+        K8S_NAMESPACE = "testprod"
+    }
 
-    stages {
+    stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/Rohitkadolkar/devops-end-to-end-project.git'
-            }
-        }
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Rohitkadolkar/devops-end-to-end-project.git'
+            }
+        }
 
-        stage('Set Image Tag') {
-            steps {
-                script {
-                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE = "${ECR_URL}/${REPO_NAME}:${IMAGE_TAG}"
-                    echo "Using Image Tag: ${IMAGE_TAG}"
-                }
-            }
-        }
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    // Using def for local scope and the variable will be accessed globally
+                    IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE = "${ECR_URL}/${REPO_NAME}:${IMAGE_TAG}"
+                    echo "Using Image Tag: ${IMAGE_TAG}"
+                }
+            }
+        }
 
-        stage('Login to ECR') {
-            steps {
-                sh '''
-                aws configure set default.region ${AWS_REGION}
+        stage('Login to ECR') {
+            steps {
+                sh """
+                aws configure set default.region ${AWS_REGION}
 
-                aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin ${ECR_URL}
-                '''
-            }
-        }
+                aws ecr get-login-password --region ${AWS_REGION} \
+                    | docker login --username AWS --password-stdin ${ECR_URL}
+                """
+            }
+        }
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                docker build -t todoapp:latest ./app
-                docker tag todoapp:latest ${IMAGE}
-                '''
-            }
-        }
+        stage('Build Docker Image') {
+            steps {
+                // *** FIX APPLIED: Changed to triple double quotes (""") for Groovy interpolation ***
+                sh """
+                docker build -t todoapp:latest ./app
+                docker tag todoapp:latest ${IMAGE} 
+                """
+            }
+        }
 
-        stage('Push to ECR') {
-            steps {
-                sh '''
-                docker push ${IMAGE}
-                '''
-            }
-        }
+        stage('Push to ECR') {
+            steps {
+                // Changed to triple double quotes (""")
+                sh """
+                docker push ${IMAGE}
+                """
+            }
+        }
 
-        stage('Deploy to EKS with Helm') {
-            steps {
-                sh '''
-                aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
+        stage('Deploy to EKS with Helm') {
+            steps {
+                // Changed to triple double quotes (""")
+                sh """
+                aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
 
-                helm upgrade --install todoapp ${CHART_PATH} \
-                    --namespace ${K8S_NAMESPACE} \
-                    --set image.repository=${ECR_URL}/${REPO_NAME} \
-                    --set image.tag=${IMAGE_TAG}
-                '''
-            }
-        }
+                helm upgrade --install todoapp ${CHART_PATH} \
+                    --namespace ${K8S_NAMESPACE} \
+                    --set image.repository=${ECR_URL}/${REPO_NAME} \
+                    --set image.tag=${IMAGE_TAG}
+                """
+            }
+        }
 
-    }
+    }
 }
