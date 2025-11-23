@@ -13,7 +13,7 @@ URL: http://a558925b91fbe4472aca3d8b9544c9db-1811821463.ap-south-1.elb.amazonaws
 URL: http://a4611bf18afe04bd3adc43ce3d87f92a-306919747.ap-south-1.elb.amazonaws.com/d/PTSqcpJWk/nodejs-application-dashboard?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all
 
 ## 📁 Project Structure
-'''
+```
 devops-end-to-end-project/
 │
 ├── app/
@@ -58,7 +58,7 @@ devops-end-to-end-project/
     ├── README.md
     ├── architecture.png
     └── Grafana Dashboard/
-'''
+```
 
 ## Application Overview
 Simple Node.js Todo app (in-memory store)
