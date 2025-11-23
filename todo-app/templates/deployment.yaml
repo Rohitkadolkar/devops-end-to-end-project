@@ -28,9 +28,9 @@ spec:
 
           envFrom:
             - configMapRef:
-              name: {{ include "todo-app.fullname" . }}-config
+                name: {{ include "todo-app.fullname" . }}-config
             - secretRef:
-              name: {{ include "todo-app.fullname" . }}
+                name: {{ include "todo-app.fullname" . }}
 
           readinessProbe:
             httpGet:
