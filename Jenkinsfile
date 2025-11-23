@@ -50,7 +50,8 @@ pipeline {
                 aws eks update-kubeconfig --name devops-eks --region ${AWS_REGION}
 
                 helm upgrade --install todoapp ${CHART_PATH} \
-                    --set image.repository=604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp \
+                    --namespace testprod \
+		    --set image.repository=604245833114.dkr.ecr.ap-south-1.amazonaws.com/todoapp \
                     --set image.tag=latest
                 '''
             }
