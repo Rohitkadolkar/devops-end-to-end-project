@@ -3,15 +3,24 @@ kind: Service
 metadata:
   name: {{ include "todo-app.fullname" . }}
   namespace: testprod
+  labels:
+    app: {{ include "todo-app.name" . }}
   annotations:
+    # AWS Load Balancer health checks
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-type: "HTTP"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
-    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/health"
+
+    # Prometheus scraping (optional but ideal)
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"
+    prometheus.io/path: "/metrics"
+
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.service.type }}   # LoadBalancer
   selector:
     app: {{ include "todo-app.name" . }}
   ports:
     - name: http
-      port: {{ .Values.service.port }}
+      port: {{ .Values.service.port }}   # 80 from values.yaml
       targetPort: 3000
