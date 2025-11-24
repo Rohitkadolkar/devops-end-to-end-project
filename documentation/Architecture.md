@@ -11,4 +11,5 @@ This project follows a modern production-grade DevOps architecture:
 - Terraform manages entire infra + backend state (S3 + DynamoDB)
 - Jenkins handles CI/CD and automatically deploys updates to EKS
 
+![Devops-end-to-end](https://github.com/user-attachments/assets/a8ea360a-58d8-483d-902b-940e37ebf1ce)
 
